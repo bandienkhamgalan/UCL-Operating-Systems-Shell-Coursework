@@ -1,8 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include "Profile.h"
 #include "Helpers.h"
-#include "Variable.h"
 
 HashTable* ParseEnvironmentVariables(char *filename)
 {
@@ -14,18 +14,17 @@ HashTable* ParseEnvironmentVariables(char *filename)
 	
 	size_t lineBufferSize = 32;
 	char *lineBuffer = calloc(sizeof(char), lineBufferSize);
-	Variable variable;
 	int counter = 0;
 	while(getline(&lineBuffer, &lineBufferSize, profile) != -1)
 	{
 		trimWhitespace(lineBuffer);
-		char *name;
-		char *value;
-		if(ParseAssignmentString(lineBuffer, &name, &value))
+		char *value = lineBuffer;
+		char *name = strsep(&value, "=");
+		if(value == NULL)
 		{
-			HashTable_Set(toReturn, name, value);
-		} else {
 			printf("Error parsing line %d of profile file", counter);
+		} else {
+			HashTable_Set(toReturn, name, value);
 		}
 		++counter;
 	}

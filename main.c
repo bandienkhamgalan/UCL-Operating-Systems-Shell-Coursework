@@ -8,7 +8,8 @@
 int main(int argc, char *argv[])
 {
 	HashTable* table = ParseEnvironmentVariables("profile");
-	printf("%zu", table->entries);
+	printf("HOME:\t%s\n", HashTable_Get(table, "HOME"));
+	printf("PATH:\t%s\n", HashTable_Get(table, "PATH"));
 	char *cwd = getcwd(NULL, 0);
 	printf("%s\n", cwd);
 	free(cwd);

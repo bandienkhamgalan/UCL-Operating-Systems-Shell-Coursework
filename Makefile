@@ -1,7 +1,7 @@
 C := gcc
 CFLAGS := -Wall -Werror
 
-Src := main Array Profile HashTable
+Src := main Array Profile HashTable Helpers
 Obj := $(addsuffix .o, $(Src))
 
 release: $(Obj)
