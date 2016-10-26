@@ -39,3 +39,4 @@ size_t trimWhitespace(char *toTrim)
 	toTrim[index] = '\0';
 	return length;
 }
+

@@ -20,9 +20,9 @@ HashTable* ParseEnvironmentVariables(char *filename)
 		trimWhitespace(lineBuffer);
 		char *value = lineBuffer;
 		char *name = strsep(&value, "=");
-		if(value == NULL)
+		if(value == NULL || strlen(name) == 0 || strlen(value) == 0)
 		{
-			printf("Error parsing line %d of profile file", counter);
+			printf("Error parsing line %d of profile file\n", counter);
 		} else {
 			HashTable_Set(toReturn, name, value);
 		}

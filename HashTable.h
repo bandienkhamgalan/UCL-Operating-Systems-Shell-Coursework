@@ -15,7 +15,7 @@ typedef struct
 	HashTableEntry* table;
 	size_t entries;
 	size_t _size;
-	size_t _collisions;
+	size_t _collisions; 
 } HashTable;
 
 HashTable* HashTable_Make(size_t size);

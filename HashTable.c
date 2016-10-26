@@ -76,7 +76,7 @@ char* HashTable_Get(HashTable *hashTable, char *key)
 	HashTableEntry* entry = &(hashTable->table[hash]);
 	do
 	{
-		if(strcmp(key, entry->key) == 0)
+		if(entry->key && strcmp(key, entry->key) == 0)
 			return entry->value;
 		entry = entry->next;
 	} while(entry != NULL);
