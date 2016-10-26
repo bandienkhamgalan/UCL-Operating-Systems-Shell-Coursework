@@ -61,7 +61,7 @@ void Array_Insert(Array* array, void *toArray_Insert, size_t index)
 
 void Array_Delete(Array* array, size_t index)
 {
-	assert(array != NULL & index < array->length);
+	assert(array != NULL && index < array->length);
 	
 	if(array->_deleter)
 		array->_deleter(array->elements[index]);

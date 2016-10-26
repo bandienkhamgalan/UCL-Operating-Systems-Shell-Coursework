@@ -1,5 +1,5 @@
 C := gcc
-CFLAGS := -Wall -Werror
+CFLAGS := -Wall -Werror -std=c99
 
 Src := main Array Profile HashTable Helpers
 Obj := $(addsuffix .o, $(Src))

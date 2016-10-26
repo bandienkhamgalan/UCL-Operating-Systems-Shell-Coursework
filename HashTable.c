@@ -1,3 +1,4 @@
+#define _GNU_SOURCE
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
@@ -90,6 +91,8 @@ void HashTable_Free(HashTable *hashTable)
 	for(int i = 0 ; i < hashTable->_size ; ++i)
 	{
 		HashTableEntry* entry = &(hashTable->table[i]);
+		free(entry->key);
+		free(entry->value);
 		entry = entry->next;
 		while(entry != NULL)
 		{
