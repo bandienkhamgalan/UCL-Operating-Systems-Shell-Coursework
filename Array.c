@@ -1,6 +1,6 @@
 #include <stdlib.h>
 #include <assert.h>
-#include "array.h"
+#include "Array.h"
 #define Array_Initial_Capacity 8
 
 Array* Array_Make(void (*_deleter)(void *))
