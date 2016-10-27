@@ -3,8 +3,9 @@
 
 #include <stdbool.h>
 
-// In-place trimming
-size_t trimWhitespace(char *toTrim);
-bool ParseAssignmentString(char* toParse, char **name, char **value);
+size_t trimWhitespace(char *toTrim); // In-place trimming
+void getCurrentWorkingDirectory(char** heapString, size_t bufferSize);
+bool containsSpaces(char *toCheck);
+bool parseAssignmentString(char *toParse, char **name, char **value);
 
 #endif

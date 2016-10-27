@@ -1,19 +1,16 @@
 C := gcc
-CFLAGS := -Wall -Werror -std=c99
+CFLAGS := -Wall -Werror -std=c99 -g
 
-Src := main Array Profile HashTable Helpers
+Src := main Shell HashTable Helpers
 Obj := $(addsuffix .o, $(Src))
 
 release: $(Obj)
 	@$(C) $(CFLAGS) -o Shell  $^
 
-debug: $(Obj)
-	@$(C) $(CFLAGS) -g -o Shell $^
-
 #SUTs := Array
 #TestObj := $(addsuffix Test.o, ${SUTs}) $(addsuffix .o, )
-test: test.o Array.o HashTable.o Helpers.o
-	@$(C) $(CFLAGS) -g -o ShellTest $^
+test: test.o HashTable.o Helpers.o
+	@$(C) $(CFLAGS) -o ShellTest $^
 	@./ShellTest || true
 
 clean: 
@@ -24,5 +21,5 @@ clean:
 %.o: %.c
 	@$(C) $(CFLAGS) -o $@ -c $<
 
-test.o: HashTableTest.h ArrayTest.h HelpersTest.h
+test.o: HashTableTest.h HelpersTest.h
 	@$(C) $(CFLAGS) -o $@ -c $(addsuffix .c, $(basename $@))

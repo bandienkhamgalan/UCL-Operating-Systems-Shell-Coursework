@@ -7,53 +7,49 @@
 #include <errno.h>
 #include "HashTable.h"
 #include "Helpers.h"
-#include "Profile.h"
-#include "Array.h"
-
-typedef struct
-{
-	char* workingDirectory;
-	HashTable* environmentVariables;
-	Array* searchPaths;
-} Shell;
+#include "Shell.h"
 
 int main(int argc, char *argv[])
 {
-	Shell shell;
-	assert((shell.environmentVariables = ParseEnvironmentVariables("profile")) != NULL);
-	
-	//char* path = HashTable_Get(shell.environmentVariables, "PATH");
-	char* home = HashTable_Get(shell.environmentVariables, "HOME");
-	if(home == NULL)
+	Shell* shell = Shell_Make();
+	if(Shell_LoadProfile(shell, "profile") == -1)
 	{
-		char *cwd = getcwd(NULL, 0);
-		printf("No HOME set in profile: setting to %s\n", cwd);
-		HashTable_Set(shell.environmentVariables, "HOME", cwd);
-		free(cwd);
-		home = HashTable_Get(shell.environmentVariables, "HOME");
+		printf("Could not load profile file\n");
 	}
-	shell.workingDirectory = home;
-	if(chdir(shell.workingDirectory) != 0) {
-		int errsv = errno;
-		printf("Error occurred changing directory: %d\n", errsv);
-	} else {
-		size_t lineBufferSize = 64;
-		char *lineBuffer = calloc(sizeof(char), lineBufferSize);
-		char *cwd = getcwd(NULL, 0);
-		printf("%s > ", cwd);
-		while(getline(&lineBuffer, &lineBufferSize, stdin) != -1)
+	
+	int currentError;
+	char* home = HashTable_Get(shell->variables, "HOME");
+	if(home != NULL)
+	{
+		if((currentError = Shell_ChangeWorkingDirectory(shell, home)) != 0)
 		{
-			trimWhitespace(lineBuffer);
-			printf("you entered %zu characters\n", strlen(lineBuffer));
-			printf("%s > ", cwd);
-			if(strcmp(lineBuffer, "exit") == 0)
-				break;
+			printf("Could not change working directory to $HOME: %s\n", strerror(currentError));
+			Shell_UpdateCurrentWorkingDirectory(shell);
 		}
-		free(cwd);
-		free(lineBuffer);
 	}
+	
+	size_t lineBufferSize = 64;
+	char *lineBuffer = calloc(sizeof(char), lineBufferSize);
+	
+	Shell_PromptUser(shell);
+	while(getline(&lineBuffer, &lineBufferSize, stdin) != -1)
+	{
+		trimWhitespace(lineBuffer);
+		char *name = NULL;
+		char *value = NULL;
+		if(parseAssignmentString(lineBuffer, &name, &value))
+		{
+			printf("Updating %s variable to %s\n", name, value);
+			Shell_UpdateVariable(shell, name, value);
+		}
+		printf("you entered %zu characters\n", strlen(lineBuffer));
+		Shell_PromptUser(shell);
+		if(strcmp(lineBuffer, "exit") == 0)
+			break;
+	}
+	free(lineBuffer);
 
-	HashTable_Free(shell.environmentVariables);
+	Shell_Free(shell);
 
 	return 0;
 }

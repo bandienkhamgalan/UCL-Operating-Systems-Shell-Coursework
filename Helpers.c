@@ -2,6 +2,8 @@
 #include <assert.h>
 #include <string.h>
 #include <stdbool.h>
+#include <unistd.h>
+#include <errno.h>
 #include "Helpers.h"
 
 size_t trimWhitespace(char *toTrim)
@@ -40,3 +42,26 @@ size_t trimWhitespace(char *toTrim)
 	return length;
 }
 
+bool containsSpaces(char *toCheck)
+{
+	assert(toCheck != NULL);
+	size_t length = strlen(toCheck);
+	for(int index = 0 ; index < length ; ++index)
+		if(isspace(toCheck[index]))
+			return true;
+	return false;
+}
+
+bool parseAssignmentString(char *toParse, char **name, char **value)
+{
+	assert(toParse != NULL && name != NULL && value != NULL);
+	char* parsedValue = toParse;
+	char* parsedName = strsep(&parsedValue, "=");
+	if(parsedValue == NULL || parsedName == NULL)
+		return false;
+	if(strlen(parsedName) == 0 || strlen(parsedValue) == 0 || containsSpaces(parsedName) || containsSpaces(parsedValue))
+		return false;
+	*value = parsedValue;
+	*name = parsedName;
+	return true;
+}
