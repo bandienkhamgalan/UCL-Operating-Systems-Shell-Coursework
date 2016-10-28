@@ -18,8 +18,8 @@ clean:
 	@rm -rf ShellTest
 	@rm -rf *.o
 
-%.o: %.c
-	@$(C) $(CFLAGS) -o $@ -c $<
-
 test.o: HashTableTest.h HelpersTest.h
 	@$(C) $(CFLAGS) -o $@ -c $(addsuffix .c, $(basename $@))
+
+%.o: %.c
+	@$(C) $(CFLAGS) -o $@ -c $<
