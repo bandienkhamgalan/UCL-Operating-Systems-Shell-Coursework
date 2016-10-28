@@ -46,6 +46,8 @@ void HashTable_Set(HashTable *hashTable, char *_key, char *_value)
 		{
 			if(strcmp(entry->key, key) == 0)
 			{
+				free(entry->value);
+				free(key);
 				entry->value = value;
 				return;
 			}
@@ -83,6 +85,45 @@ char* HashTable_Get(HashTable *hashTable, char *key)
 	} while(entry != NULL);
 
 	return NULL;
+}
+
+bool HashTable_Delete(HashTable *hashTable, char *key)
+{
+	assert(hashTable != NULL && key != NULL);
+
+	size_t hash = HashTable_Hash(key) % hashTable->_size;
+	HashTableEntry* entry = &(hashTable->table[hash]);
+	HashTableEntry* previous = NULL;
+	do
+	{
+		if(entry->key && strcmp(key, entry->key) == 0)
+		{			
+			// first element
+			free(entry->key);
+			free(entry->value);
+			entry->key = entry->value = NULL;
+
+			HashTableEntry* next = entry->next;
+			if(next != NULL)
+			{
+				entry->key = next->key;
+				entry->value = next->value;
+				entry->next = next->next;
+				free(next);
+			}
+
+			if(previous != NULL)
+				previous->next = entry;
+			
+			--(hashTable->entries);
+			
+			return true;
+		}
+		previous = entry;
+		entry = entry->next;
+	} while(entry != NULL);
+
+	return false;
 }
 
 void HashTable_Free(HashTable *hashTable)

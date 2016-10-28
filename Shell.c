@@ -7,7 +7,6 @@
 #include <errno.h>
 #include "Shell.h"
 #include "HashTable.h"
-#include "Profile.h"
 #include "Helpers.h"
 
 void Shell_LoadSearchPathsFromString(Shell* shell, char* paths)

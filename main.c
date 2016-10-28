@@ -22,11 +22,9 @@ int main(int argc, char *argv[])
 	if(home != NULL)
 	{
 		if((currentError = Shell_ChangeWorkingDirectory(shell, home)) != 0)
-		{
 			printf("Could not change working directory to $HOME: %s\n", strerror(currentError));
-			Shell_UpdateCurrentWorkingDirectory(shell);
-		}
 	}
+	Shell_UpdateCurrentWorkingDirectory(shell);
 	
 	size_t lineBufferSize = 64;
 	char *lineBuffer = calloc(sizeof(char), lineBufferSize);
@@ -35,6 +33,9 @@ int main(int argc, char *argv[])
 	while(getline(&lineBuffer, &lineBufferSize, stdin) != -1)
 	{
 		trimWhitespace(lineBuffer);
+		if(strcmp(lineBuffer, "exit") == 0)
+			break;
+
 		char *name = NULL;
 		char *value = NULL;
 		if(parseAssignmentString(lineBuffer, &name, &value))
@@ -42,10 +43,49 @@ int main(int argc, char *argv[])
 			printf("Updating %s variable to %s\n", name, value);
 			Shell_UpdateVariable(shell, name, value);
 		}
-		printf("you entered %zu characters\n", strlen(lineBuffer));
+		else
+		{
+			char** elements = splitBySpace(lineBuffer);
+			size_t numElements = strarraylen(elements);
+			if(numElements >= 1)
+			{
+				char* command = elements[0];
+				if(strcmp(command, "cd") == 0)
+				{
+					if(numElements == 1)
+					{
+						char* home = HashTable_Get(shell->variables, "HOME");
+						if(home != NULL)
+						{
+							if((currentError = Shell_ChangeWorkingDirectory(shell, home)) != 0)
+								printf("Could not change working directory: %s\n", strerror(currentError));
+						}
+						else
+						{
+							printf("cd: must provide argument or set $HOME\n");
+						}
+					}
+					else if(numElements == 2)
+					{
+						char* directory = elements[1];
+						if((currentError = Shell_ChangeWorkingDirectory(shell, directory)) != 0)
+							printf("Could not change working directory: %s\n", strerror(currentError));
+					}
+					else
+					{
+						printf("cd: invalid number of arguments\n");
+					}
+				}
+				else
+				{
+					printf("Executing command %s...\n", command);
+				}
+			}
+			//printf("you entered %zu elements\n", numElements);
+			free(elements);
+		}
+
 		Shell_PromptUser(shell);
-		if(strcmp(lineBuffer, "exit") == 0)
-			break;
 	}
 	free(lineBuffer);
 
