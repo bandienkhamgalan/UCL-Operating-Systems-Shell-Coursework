@@ -9,7 +9,7 @@ release: $(Obj)
 
 #SUTs := Array
 #TestObj := $(addsuffix Test.o, ${SUTs}) $(addsuffix .o, )
-test: test.o HashTable.o Helpers.o
+test: test.o HashTable.o Helpers.o Shell.o
 	@$(C) $(CFLAGS) -o ShellTest $^
 	@./ShellTest || true
 
@@ -18,7 +18,7 @@ clean:
 	@rm -rf ShellTest
 	@rm -rf *.o
 
-test.o: HashTableTest.h HelpersTest.h
+test.o: HashTableTest.h HelpersTest.h ShellTest.h
 	@$(C) $(CFLAGS) -o $@ -c $(addsuffix .c, $(basename $@))
 
 %.o: %.c

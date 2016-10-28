@@ -62,7 +62,7 @@ bool parseAssignmentString(char *toParse, char **name, char **value)
 	char* parsedName = strsep(&parsedValue, "=");
 	if(parsedValue == NULL || parsedName == NULL)
 		return false;
-	if(strlen(parsedName) == 0 || strlen(parsedValue) == 0 || containsSpaces(parsedName) || containsSpaces(parsedValue))
+	if(strlen(parsedName) == 0 || strlen(parsedValue) == 0)
 		return false;
 	*value = parsedValue;
 	*name = parsedName;
@@ -85,6 +85,7 @@ char** splitBySpace(char *toParse)
 
 	size_t capacity = 2;
 	char** strings = calloc(sizeof(char*), capacity);
+	assert(strings != NULL);
 	size_t stringsIndex = 0;
 
 	// Find start indices of tokens
@@ -172,6 +173,7 @@ char** splitBySpace(char *toParse)
 			if(stringsIndex + 1 >= capacity)
 			{
 				strings = realloc(strings, sizeof(char*) * capacity * 2);
+				assert(strings != NULL);
 				capacity *= 2;
 			}
 			strings[stringsIndex] = toParse + startIndex;

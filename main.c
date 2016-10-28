@@ -18,13 +18,27 @@ int main(int argc, char *argv[])
 	}
 	
 	int currentError;
-	char* home = HashTable_Get(shell->variables, "HOME");
+	char* home = Shell_GetVariable(shell, "HOME");
 	if(home != NULL)
 	{
 		if((currentError = Shell_ChangeWorkingDirectory(shell, home)) != 0)
 			printf("Could not change working directory to $HOME: %s\n", strerror(currentError));
 	}
+	else
+	{
+		printf("HOME was not set in profile file...\n");
+	}
 	Shell_UpdateCurrentWorkingDirectory(shell);
+
+	char* paths = Shell_GetVariable(shell, "PATH");
+	if(paths != NULL)
+	{
+		Shell_LoadSearchPathsFromString(shell, paths);
+	}
+	else
+	{
+		printf("PATH was not set in profile file...\n");
+	}
 	
 	size_t lineBufferSize = 64;
 	char *lineBuffer = calloc(sizeof(char), lineBufferSize);
@@ -41,7 +55,11 @@ int main(int argc, char *argv[])
 		if(parseAssignmentString(lineBuffer, &name, &value))
 		{
 			printf("Updating %s variable to %s\n", name, value);
-			Shell_UpdateVariable(shell, name, value);
+			Shell_SetVariable(shell, name, value);
+			if(strcmp(name, "PATH") == 0)
+			{
+				Shell_LoadSearchPathsFromString(shell, value);
+			}
 		}
 		else
 		{
@@ -54,7 +72,7 @@ int main(int argc, char *argv[])
 				{
 					if(numElements == 1)
 					{
-						char* home = HashTable_Get(shell->variables, "HOME");
+						char* home = Shell_GetVariable(shell, "HOME");
 						if(home != NULL)
 						{
 							if((currentError = Shell_ChangeWorkingDirectory(shell, home)) != 0)
@@ -78,7 +96,7 @@ int main(int argc, char *argv[])
 				}
 				else
 				{
-					printf("Executing command %s...\n", command);
+					Shell_RunCommand(shell, command, elements);
 				}
 			}
 			//printf("you entered %zu elements\n", numElements);
