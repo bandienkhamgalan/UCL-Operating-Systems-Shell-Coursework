@@ -6,6 +6,7 @@
 #include <unistd.h>
 #include <errno.h>
 #include <sys/stat.h>
+#include <sys/wait.h>
 #include "Shell.h"
 #include "HashTable.h"
 #include "Helpers.h"
