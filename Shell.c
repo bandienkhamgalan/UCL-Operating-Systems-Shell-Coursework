@@ -188,10 +188,10 @@ void Shell_RunCommand(Shell* shell, char* command, char** arguments)
 		strcpy(buffer, searchPath);
 		strcat(buffer, "/");
 		strcat(buffer, command);
-		printf("Checking %s...\n", buffer);
+		//printf("Checking %s...\n", buffer);
 		if(stat(buffer, &statbuf) == 0 && S_ISREG(statbuf.st_mode))
 		{
-			printf("Executing %s\n", buffer);
+			//printf("Executing %s\n", buffer);
         	pid_t pid = fork();
 
         	if(pid == -1)
@@ -210,6 +210,7 @@ void Shell_RunCommand(Shell* shell, char* command, char** arguments)
         		int status;
         		waitpid(pid, &status, 0);
         		//printf("Process %d finished executing with status %d\n", pid, status);
+        		break;
         	}
 		}
 	}
