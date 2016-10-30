@@ -1,2 +1,2 @@
 PATH=/bin:/usr/bin:/usr/local/bin
-HOME=/home/osboxes
+HOME=/Users/bandi

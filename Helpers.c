@@ -69,7 +69,7 @@ bool parseAssignmentString(char *toParse, char **name, char **value)
 	return true;
 }
 
-size_t strarraylen(char **toCount)
+size_t strarraylen(char** toCount)
 {
 	assert(toCount != NULL);
 	size_t count = 0;
@@ -124,20 +124,8 @@ char** splitBySpace(char *toParse)
 					escaped = false;
 				else
 				{
-					if(index == startIndex)
-						quoted = true;
-					else if(quoted && ((index + 1 < length && isspace(toParse[index + 1])) || index + 1 == length))
-					{
-						success = true;
-						break;
-					}
-					else
-					{
-					//	printf("Encountered unescaped quote in middle of string...\n");
-						break;
-					}
+					quoted = !quoted;
 				}
-					
 			}
 			else if(isspace(current))
 			{
@@ -167,7 +155,7 @@ char** splitBySpace(char *toParse)
 		if(startIndex == index)
 			break;
 
-		if(success || index == length)
+		if((success || index == length) && !quoted)
 		{
 			toParse[index] = '\0';
 			if(stringsIndex + 1 >= capacity)
@@ -206,6 +194,10 @@ char** splitBySpace(char *toParse)
 		{
 			if(string[stringIndex] == '\\' && !escaped)
 				escaped = true;
+			else if(string[stringIndex] == '\"' && !escaped)
+			{
+				// do not copy quotation marks
+			}
 			else
 			{
 				string[realIndex] = string[stringIndex];
@@ -214,8 +206,6 @@ char** splitBySpace(char *toParse)
 			}
 		}
 		string[realIndex] = '\0';
-		if(string[realIndex - 1] == '\"' && quoted)
-			string[realIndex - 1] = '\0';
 	}
 
 

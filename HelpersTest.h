@@ -204,6 +204,14 @@ TEST splitBySpace_InvalidQuoted2() {
     PASS();      
 }
 
+TEST splitBySpace_InvalidQuoted3() {
+    char test[] = "\"hello \\ my name is";
+    char** split = splitBySpace(test);
+    ASSERT_EQ(0, strarraylen(split));
+    free(split);
+    PASS();      
+}
+
 TEST splitBySpace_Long() {
     char test[] = "ls\t \"/Users/bandi/Desktop/Opera\\\"ting Systems\"";
     char** split = splitBySpace(test);
@@ -235,6 +243,35 @@ TEST splitBySpace_OneCharacters() {
     ASSERT_STR_EQ(split[4], "e");
     free(split);
     PASS();      
+}
+    
+TEST splitBySpace_ConcatenatedQuotes() {
+    char test[] = "ls\t \"/Users/bandi /\"Desktop/Operating\\ Systems\t  ";
+    char** split = splitBySpace(test);
+    ASSERT_EQ(2, strarraylen(split));
+    ASSERT_STR_EQ(split[0], "ls");
+    ASSERT_STR_EQ(split[1], "/Users/bandi /Desktop/Operating Systems");
+    free(split);
+    PASS();  
+}
+    
+TEST splitBySpace_ConcatenatedQuotes2() {
+    char test[] = "\"\"a\"sup hello\"\" \"world";
+    char** split = splitBySpace(test);
+    ASSERT_EQ(1, strarraylen(split));
+    ASSERT_STR_EQ(split[0], "asup hello world");
+    free(split);
+    PASS();  
+}
+    
+TEST splitBySpace_ConcatenatedQuotes3() {
+    char test[] = "\"\"\"\"\"\"\"\" hello";
+    char** split = splitBySpace(test);
+    ASSERT_EQ(2, strarraylen(split));
+    ASSERT_STR_EQ(split[0], "");
+    ASSERT_STR_EQ(split[1], "hello");
+    free(split);
+    PASS();  
 }
 
 SUITE(HelpersTest)
@@ -268,7 +305,11 @@ SUITE(HelpersTest)
     RUN_TEST(splitBySpace_TwoWords);
     RUN_TEST(splitBySpace_InvalidQuoted);
     RUN_TEST(splitBySpace_InvalidQuoted2);
+    RUN_TEST(splitBySpace_InvalidQuoted3);
     RUN_TEST(splitBySpace_Long);
     RUN_TEST(splitBySpace_Long2);
     RUN_TEST(splitBySpace_OneCharacters);
+    RUN_TEST(splitBySpace_ConcatenatedQuotes);
+    RUN_TEST(splitBySpace_ConcatenatedQuotes2);
+    RUN_TEST(splitBySpace_ConcatenatedQuotes3);
 }

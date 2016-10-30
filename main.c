@@ -94,10 +94,20 @@ int main(int argc, char *argv[])
 						printf("cd: invalid number of arguments\n");
 					}
 				}
+				else if(strcmp(command, "splitBySpace") == 0)
+				{
+					printf("%zu components\n", numElements);
+					for(size_t index = 0 ; index < numElements ; ++index)
+						printf("%zu\t%s\t(%zu characters)\n", index + 1, elements[index], strlen(elements[index]));
+				}
 				else
 				{
 					Shell_RunCommand(shell, command, elements);
 				}
+			}
+			else
+			{
+				printf("You entered an invalid string...\n");
 			}
 			//printf("you entered %zu elements\n", numElements);
 			free(elements);
