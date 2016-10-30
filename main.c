@@ -50,68 +50,66 @@ int main(int argc, char *argv[])
 		if(strcmp(lineBuffer, "exit") == 0)
 			break;
 
-		char *name = NULL;
-		char *value = NULL;
-		if(parseAssignmentString(lineBuffer, &name, &value))
+		char** elements = splitBySpace(lineBuffer);
+		size_t numElements = strarraylen(elements);
+		if(numElements >= 1)
 		{
-			printf("Updating %s variable to %s\n", name, value);
-			Shell_SetVariable(shell, name, value);
-			if(strcmp(name, "PATH") == 0)
+			char* command = elements[0];
+
+			char *name = NULL;
+			char *value = NULL;
+			if(numElements == 1 && parseAssignmentString(lineBuffer, &name, &value))
 			{
-				Shell_LoadSearchPathsFromString(shell, value);
-			}
-		}
-		else
-		{
-			char** elements = splitBySpace(lineBuffer);
-			size_t numElements = strarraylen(elements);
-			if(numElements >= 1)
-			{
-				char* command = elements[0];
-				if(strcmp(command, "cd") == 0)
+				printf("Updating %s variable to %s\n", name, value);
+				Shell_SetVariable(shell, name, value);
+				if(strcmp(name, "PATH") == 0)
 				{
-					if(numElements == 1)
+					Shell_LoadSearchPathsFromString(shell, value);
+				}				
+			}
+			else if(strcmp(command, "cd") == 0)
+			{
+				if(numElements == 1)
+				{
+					char* home = Shell_GetVariable(shell, "HOME");
+					if(home != NULL)
 					{
-						char* home = Shell_GetVariable(shell, "HOME");
-						if(home != NULL)
-						{
-							if((currentError = Shell_ChangeWorkingDirectory(shell, home)) != 0)
-								printf("Could not change working directory: %s\n", strerror(currentError));
-						}
-						else
-						{
-							printf("cd: must provide argument or set $HOME\n");
-						}
-					}
-					else if(numElements == 2)
-					{
-						char* directory = elements[1];
-						if((currentError = Shell_ChangeWorkingDirectory(shell, directory)) != 0)
+						if((currentError = Shell_ChangeWorkingDirectory(shell, home)) != 0)
 							printf("Could not change working directory: %s\n", strerror(currentError));
 					}
 					else
 					{
-						printf("cd: invalid number of arguments\n");
+						printf("cd: must provide argument or set $HOME\n");
 					}
 				}
-				else if(strcmp(command, "splitBySpace") == 0)
+				else if(numElements == 2)
 				{
-					printf("%zu components\n", numElements);
-					for(size_t index = 0 ; index < numElements ; ++index)
-						printf("%zu\t%s\t(%zu characters)\n", index + 1, elements[index], strlen(elements[index]));
+					char* directory = elements[1];
+					if((currentError = Shell_ChangeWorkingDirectory(shell, directory)) != 0)
+						printf("Could not change working directory: %s\n", strerror(currentError));
 				}
 				else
 				{
-					Shell_RunCommand(shell, command, elements);
+					printf("cd: invalid number of arguments\n");
 				}
+			}
+			else if(strcmp(command, "splitBySpace") == 0)
+			{
+				printf("%zu components\n", numElements);
+				for(size_t index = 0 ; index < numElements ; ++index)
+					printf("%zu\t%s\t(%zu characters)\n", index + 1, elements[index], strlen(elements[index]));
 			}
 			else
 			{
-				printf("You entered an invalid string...\n");
+				Shell_RunCommand(shell, command, elements);
 			}
-			//printf("you entered %zu elements\n", numElements);
-			free(elements);
 		}
+		else
+		{
+			printf("You entered an invalid string...\n");
+		}
+		//printf("you entered %zu elements\n", numElements);
+		free(elements);
 
 		Shell_PromptUser(shell);
 	}
