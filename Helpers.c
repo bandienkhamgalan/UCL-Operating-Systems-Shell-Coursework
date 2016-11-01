@@ -183,12 +183,6 @@ char** splitBySpace(char *toParse)
 		size_t length = strlen(string);
 		size_t realIndex = 0;
 		size_t stringIndex = 0;
-		bool quoted = false;
-		if(string[0] == '\"')
-		{
-			stringIndex = 1;
-			quoted = true;
-		}
 		bool escaped = false;
 		for( ; stringIndex < length ; ++stringIndex)
 		{

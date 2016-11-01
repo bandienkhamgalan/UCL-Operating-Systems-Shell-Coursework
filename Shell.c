@@ -14,14 +14,14 @@
 void Shell_LoadSearchPathsFromString(Shell* shell, char* paths)
 {
 	assert(shell != NULL && paths != NULL);
-	for(size_t index = 0; index < shell->searchPathsCapacity ; ++index)
+	for(size_t index = 1; index < shell->searchPathsCapacity ; ++index)
 	{
 		free(shell->searchPaths[index]);
 		shell->searchPaths[index] = NULL;
 	}
 	shell->searchPathMaxLength = 0;
 
-	size_t count = 0;
+	size_t count = 1;
 	char* delimiters = ":";
 	char* path = strtok(paths, delimiters);
 	struct stat statbuf;
@@ -71,16 +71,19 @@ int Shell_LoadProfile(Shell* shell, char *filename)
 	int variableCounter = 0;
 	while(getline(&lineBuffer, &lineBufferSize, profile) != -1)
 	{
-		trimWhitespace(lineBuffer);
+		char** elements = splitBySpace(lineBuffer);
+		size_t numElements = strarraylen(elements);
 		char *name = NULL;
 		char *value = NULL;
-		if(!parseAssignmentString(lineBuffer, &name, &value))
-		{
-			printf("Error parsing line %d of file %s\n", lineCounter, filename);
-		} else {
+		if(numElements == 1 && parseAssignmentString(lineBuffer, &name, &value))
+		{	
 			++variableCounter;
 			Shell_SetVariable(shell, name, value);
 		}
+		else
+			printf("Error parsing line %d of file %s\n", lineCounter, filename);
+
+		free(elements);		
 		++lineCounter;
 	}
 	free(lineBuffer);
@@ -98,11 +101,13 @@ Shell* Shell_Make()
 	assert(new->workingDirectory != NULL);
 	new->variables = HashTable_Make(2048);
 	new->searchPathsCapacity = 8;
-	new->searchPaths = calloc(sizeof(char*), new->searchPathsCapacity);
 	new->searchPathMaxLength = 0;
+	new->searchPaths = calloc(sizeof(char*), new->searchPathsCapacity);  
 	assert(new->searchPaths != NULL);
 	for(size_t index = 0; index < new->searchPathsCapacity ; ++index)
 		new->searchPaths[index] = NULL;
+	new->searchPaths[0] = malloc(sizeof(char) * 2);
+	strcpy(new->searchPaths[0], ".");
 	return new;
 }
 
@@ -182,16 +187,15 @@ void Shell_RunCommand(Shell* shell, char* command, char** arguments)
 	size_t bufferCapacity = shell->searchPathMaxLength + 1 + strlen(command) + 1;
 	char* buffer = calloc(sizeof(char), bufferCapacity);
 	struct stat statbuf;
+	bool found = false;
 	for(size_t index = 0 ; index < searchPathsCount ; ++index)
 	{
 		char* searchPath = shell->searchPaths[index];
 		strcpy(buffer, searchPath);
 		strcat(buffer, "/");
 		strcat(buffer, command);
-		//printf("Checking %s...\n", buffer);
 		if(stat(buffer, &statbuf) == 0 && S_ISREG(statbuf.st_mode))
 		{
-			//printf("Executing %s\n", buffer);
         	pid_t pid = fork();
 
         	if(pid == -1)
@@ -209,10 +213,15 @@ void Shell_RunCommand(Shell* shell, char* command, char** arguments)
         	{
         		int status;
         		waitpid(pid, &status, 0);
-        		//printf("Process %d finished executing with status %d\n", pid, status);
+        		found = true;
         		break;
         	}
 		}
 	}
+	if(!found)
+	{
+		printf("%s: command not found\n", command);
+	}
+
 	free(buffer);
 }
