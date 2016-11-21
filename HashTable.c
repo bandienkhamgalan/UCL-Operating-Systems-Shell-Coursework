@@ -5,6 +5,8 @@
 #include <string.h>
 #include "HashTable.h"
 
+size_t HashTable_Hash(char *toHash);
+
 HashTable* HashTable_Make(size_t size)
 {
 	HashTable* new = malloc(sizeof(HashTable));
@@ -80,7 +82,7 @@ char* HashTable_Get(HashTable *hashTable, char *key)
 	do
 	{
 		if(entry->key && strcmp(key, entry->key) == 0)
-			return entry->value;
+			return strdup(entry->value);
 		entry = entry->next;
 	} while(entry != NULL);
 

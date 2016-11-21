@@ -11,6 +11,45 @@
 #include "HashTable.h"
 #include "Helpers.h"
 
+int Shell_ChangeWorkingDirectory(Shell* shell, char *directory);
+int Shell_UpdateCurrentWorkingDirectory(Shell* shell);
+
+Shell* InitializeShell()
+{
+	Shell* shell = Shell_Make();
+	if(Shell_LoadProfile(shell, "profile") == -1)
+	{	
+		printf("Error: Could not load profile file\n");
+	}
+	
+	char* home = Shell_GetVariable(shell, "HOME");
+	if(home != NULL)
+	{
+		int error;
+		if((error = Shell_ChangeWorkingDirectory(shell, home)) != 0)
+			printf("Error: Could not change working directory to $HOME: %s\n", strerror(error));
+		free(home);
+	}
+	else
+	{
+		printf("Error: HOME was not set, please set manually...\n");
+	}
+	Shell_UpdateCurrentWorkingDirectory(shell);
+
+	char* paths = Shell_GetVariable(shell, "PATH");
+	if(paths != NULL)
+	{
+		Shell_LoadSearchPathsFromString(shell, paths);
+		free(paths);
+	}
+	else
+	{
+		printf("Error: PATH was not set, please set manually...\n");
+	}
+
+	return shell;
+}
+
 void Shell_LoadSearchPathsFromString(Shell* shell, char* paths)
 {
 	assert(shell != NULL && paths != NULL);
@@ -27,14 +66,7 @@ void Shell_LoadSearchPathsFromString(Shell* shell, char* paths)
 	struct stat statbuf;
 	while(path != NULL)
 	{
-		if(stat(path, &statbuf) == -1)
-		{
-        	int errsv = errno;
-        	printf("Error adding %s to search path: %s\n", path, strerror(errsv));
-		}
-		else if(!S_ISDIR(statbuf.st_mode))
-			printf("Error adding %s to search path: not a directory\n", path);
-		else
+		if(stat(path, &statbuf) == 0 && S_ISDIR(statbuf.st_mode))
 		{
 			if(count + 1 >= shell->searchPathsCapacity)
 			{
@@ -138,6 +170,12 @@ void Shell_SetVariable(Shell* shell, char* name, char* value)
 {
 	assert(shell != NULL && name != NULL && value != NULL);
 	HashTable_Set(shell->variables, name, value);
+	if(strcmp(name, "PATH") == 0)
+	{
+		char* path = HashTable_Get(shell->variables, "PATH");
+		Shell_LoadSearchPathsFromString(shell, path);
+		free(path);
+	}
 }
 
 char* Shell_GetVariable(Shell* shell, char* name)
@@ -177,7 +215,85 @@ int Shell_UpdateCurrentWorkingDirectory(Shell* shell)
 void Shell_PromptUser(Shell *shell)
 {
 	assert(shell != NULL && shell->workingDirectory != NULL);
+
+	int currentError;
+	size_t lineBufferSize = 64;
+	char *lineBuffer = calloc(sizeof(char), lineBufferSize);
+
 	printf("%s > ", shell->workingDirectory);
+	while(getline(&lineBuffer, &lineBufferSize, stdin) != -1)
+	{
+		trimWhitespace(lineBuffer);
+		if(strcmp(lineBuffer, "exit") == 0)
+			break;
+
+		char** elements = splitBySpace(lineBuffer);
+		size_t numElements = strarraylen(elements);
+		if(numElements >= 1)
+		{
+			char* command = elements[0];
+
+			char *name = NULL;
+			char *value = NULL;
+			if(numElements == 1 && parseAssignmentString(lineBuffer, &name, &value))
+			{
+				Shell_SetVariable(shell, name, value);			
+			}
+			else if(strcmp(command, "cd") == 0)
+			{
+				if(numElements == 1)
+				{
+					char* home = Shell_GetVariable(shell, "HOME");
+					if(home != NULL)
+					{
+						if((currentError = Shell_ChangeWorkingDirectory(shell, home)) != 0)
+							printf("Could not change working directory: %s\n", strerror(currentError));
+						free(home);
+					}
+					else
+					{
+						printf("cd: must provide argument or set $HOME\n");
+					}
+				}
+				else if(numElements == 2)
+				{
+					char* directory = elements[1];
+					if((currentError = Shell_ChangeWorkingDirectory(shell, directory)) != 0)
+						printf("Could not change working directory: %s\n", strerror(currentError));
+				}
+				else
+				{
+					printf("cd: invalid number of arguments\n");
+				}
+			}
+			/*else if(strcmp(command, "splitBySpace") == 0)
+			{
+				printf("%zu components\n", numElements);
+				for(size_t index = 0 ; index < numElements ; ++index)
+					printf("%zu\t%s\t(%zu characters)\n", index + 1, elements[index], strlen(elements[index]));
+			}
+			else if(strcmp(command, "printPath") == 0)
+			{
+				size_t searchPathsCount = strarraylen(shell->searchPaths);
+				printf("%zu directories\n", searchPathsCount);
+				for(size_t index = 0 ; index < searchPathsCount ; ++index)
+					printf("%zu\t%s\t(%zu characters)\n", index + 1, shell->searchPaths[index], strlen(shell->searchPaths[index]));
+			}*/
+			else
+			{
+				Shell_RunCommand(shell, command, elements);
+			}
+		}
+		else
+		{
+			printf("You entered an invalid string...\n");
+		}
+
+		free(elements);
+
+		printf("%s > ", shell->workingDirectory);
+	}
+	free(lineBuffer);
 }
 
 void Shell_RunCommand(Shell* shell, char* command, char** arguments)
@@ -201,7 +317,7 @@ void Shell_RunCommand(Shell* shell, char* command, char** arguments)
         	if(pid == -1)
         	{
         		int errsv = errno;
-        		printf("failed to execute execute %s: %s...\n", buffer, strerror(errsv));
+        		printf("Error: failed to execute %s: %s...\n", buffer, strerror(errsv));
         	} 
         	else if(pid == 0)
         	{

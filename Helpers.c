@@ -33,6 +33,7 @@ size_t trimWhitespace(char *toTrim)
 	while(isspace(toTrim[lastNonSpaceChar]) && lastNonSpaceChar > firstNonSpaceChar)
 		--lastNonSpaceChar;
 
+	// remove leading whitespace by shifting characters in string so first non-white space character is in index 0
 	size_t index = 0;
 	length = lastNonSpaceChar - firstNonSpaceChar + 1;
 	while(firstNonSpaceChar <= lastNonSpaceChar)
@@ -41,18 +42,10 @@ size_t trimWhitespace(char *toTrim)
 		++firstNonSpaceChar;
 		++index;
 	}
+	// truncate string with NULL termination character to remove trailing whitespace
 	toTrim[index] = '\0';
-	return length;
-}
 
-bool containsSpaces(char *toCheck)
-{
-	assert(toCheck != NULL);
-	size_t length = strlen(toCheck);
-	for(int index = 0 ; index < length ; ++index)
-		if(isspace(toCheck[index]))
-			return true;
-	return false;
+	return length;
 }
 
 bool parseAssignmentString(char *toParse, char **name, char **value)
@@ -112,10 +105,7 @@ char** splitBySpace(char *toParse)
 					if(index + 1 < length && (toParse[index + 1] == '\\' || toParse[index + 1] == ' ' || toParse[index + 1] == '\"'))
 						escaped = true;
 					else
-					{
-					//	printf("Encountered escape character not followed by proper character...\n");
 						break;
-					}
 				}
 			}
 			else if(current == '\"')
@@ -123,9 +113,7 @@ char** splitBySpace(char *toParse)
 				if(escaped)
 					escaped = false;
 				else
-				{
 					quoted = !quoted;
-				}
 			}
 			else if(isspace(current))
 			{
@@ -134,10 +122,7 @@ char** splitBySpace(char *toParse)
 					if(!quoted && current == ' ')
 						escaped = false;
 					else
-					{
-					//	printf("Encountered escaped space in quoted string...\n");
 						break;
-					}
 				}
 				else
 				{
@@ -176,7 +161,7 @@ char** splitBySpace(char *toParse)
 		++index;
 	}
 
-	// Remove escape characters
+	// Copy tokens to output array, while removing escape characters
 	for(index = 0 ; index < stringsIndex ; ++index)
 	{
 		char* string = strings[index];

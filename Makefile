@@ -4,11 +4,9 @@ CFLAGS := -Wall -Werror -std=c99 -g
 Src := main Shell HashTable Helpers
 Obj := $(addsuffix .o, $(Src))
 
-release: $(Obj)
+default: $(Obj)
 	@$(C) $(CFLAGS) -o Shell  $^
 
-#SUTs := Array
-#TestObj := $(addsuffix Test.o, ${SUTs}) $(addsuffix .o, )
 test: test.o HashTable.o Helpers.o Shell.o
 	@$(C) $(CFLAGS) -o ShellTest $^
 	@./ShellTest || true

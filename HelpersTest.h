@@ -42,21 +42,6 @@ TEST trimWhitespace_MultipleLines() {
     PASS();    
 }
 
-TEST containsSpaces_EmptyString() {
-    ASSERT(!containsSpaces(""));
-    PASS();  
-}
-
-TEST containsSpaces_AllWhitespace() {
-    ASSERT(containsSpaces("     \t\t\t\n\n\n\r\n       \n\n\r\t\n     "));
-    PASS();  
-}
-
-TEST containsSpaces_NoWhitespace() {
-    ASSERT(!containsSpaces("asdfklj99D*&^F(*&^(*&#IUHkjDJF:JLKJDFLKCM<VN<><j¬ÒÓ°‡ﬂ∏ˆ¨ÚÒÔÓˆ˝¨ÁÎÏG"));
-    PASS();  
-}
-
 TEST parseAssignmentString_EmptyString() {
     char test[] = "";
     char *name = NULL;
@@ -281,10 +266,6 @@ SUITE(HelpersTest)
     RUN_TEST(trimWhitespace_OneWord);
     RUN_TEST(trimWhitespace_MultipleWords);
     RUN_TEST(trimWhitespace_MultipleLines);
-
-    RUN_TEST(containsSpaces_EmptyString);
-    RUN_TEST(containsSpaces_AllWhitespace);
-    RUN_TEST(containsSpaces_NoWhitespace);
 
     RUN_TEST(parseAssignmentString_EmptyString);
     RUN_TEST(parseAssignmentString_NoAssignment);
