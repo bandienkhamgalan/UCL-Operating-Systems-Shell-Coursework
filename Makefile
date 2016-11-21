@@ -5,7 +5,7 @@ Src := main Shell HashTable Helpers
 Obj := $(addsuffix .o, $(Src))
 
 default: $(Obj)
-	@$(C) $(CFLAGS) -o Shell  $^
+	@$(C) $(CFLAGS) -o shell  $^
 
 test: test.o HashTable.o Helpers.o Shell.o
 	@$(C) $(CFLAGS) -o ShellTest $^
